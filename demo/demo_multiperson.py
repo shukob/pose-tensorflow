@@ -5,7 +5,7 @@ import numpy as np
 
 sys.path.append(os.path.dirname(__file__) + "/../")
 
-from scipy.misc import imread, imsave
+from imageio import imread
 
 from util.config import load_config
 from dataset.factory import create as create_dataset
@@ -15,7 +15,7 @@ from dataset.pose_dataset import data_to_input
 
 from multiperson.detections import extract_detections
 from multiperson.predict import SpatialModel, eval_graph, get_person_conf_multicut
-from multiperson.visualize import PersonDraw, visualize_detections
+from multiperson.visualize import PersonDraw
 
 import matplotlib.pyplot as plt
 
@@ -33,8 +33,8 @@ draw_multi = PersonDraw()
 sess, inputs, outputs = predict.setup_pose_prediction(cfg)
 
 # Read image from file
-file_name = "demo/image_multi.png"
-image = imread(file_name, mode='RGB')
+file_name = "image_multi.png"
+image = imread(file_name, pilmode='RGB')
 
 image_batch = data_to_input(image)
 

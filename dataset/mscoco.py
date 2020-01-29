@@ -4,7 +4,7 @@ import skimage.io as io
 import matplotlib.pyplot as plt
 
 import numpy as np
-from scipy.misc import imresize
+import cv2
 import json
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -104,7 +104,7 @@ class MSCOCO(PoseDataset):
         scmask = np.ones(size)
         m = maskUtils.decode(data_item.im_neg_mask)
         if m.size:
-            scmask = 1.0 - imresize(m, size)
+            scmask = 1.0 - cv2.resize(m, dsize=size)
         scmask = np.stack([scmask] * self.cfg.num_joints, axis=-1)
         return scmask
 

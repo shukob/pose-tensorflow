@@ -1,7 +1,7 @@
 import math
 
 import numpy as np
-from scipy.misc import imresize
+import cv2
 import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
@@ -59,7 +59,7 @@ def show_heatmaps(cfg, img, scmap, pose, cmap="jet"):
         plot_j = (pidx + 1) // subplot_width
         plot_i = (pidx + 1) % subplot_width
         scmap_part = np.sum(scmap[:, :, part], axis=2)
-        scmap_part = imresize(scmap_part, 8.0, interp='bicubic')
+        scmap_part = cv2.resize(scmap_part, dsize=None, fx=8.0, fy=8.0, interpolation=cv2.INTER_CUBIC)
         scmap_part = np.lib.pad(scmap_part, ((4, 0), (4, 0)), 'minimum')
         curr_plot = axarr[plot_j, plot_i]
         curr_plot.set_title(all_joints_names[pidx])
