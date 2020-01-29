@@ -14,7 +14,7 @@ extensions = [
     'multicut', ['multicut.pyx', 'src/nl-lmp.cxx'],
     language="c++",
     include_dirs=[np.get_include(), '.', 'include', 'src'],
-    extra_compile_args=['-std=c++11','-O3', '-DHAVE_CPP11_INITIALIZER_LISTS'],
+    extra_compile_args=['-std=c++11','-O3', '-DHAVE_CPP11_INITIALIZER_LISTS', '-fpermissive'],
     extra_link_args=['-std=c++11', '-L./']
   )
 ] 
