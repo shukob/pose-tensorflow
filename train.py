@@ -2,7 +2,7 @@ import logging
 import threading
 
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
+import tf_slim as slim
 
 from util.config import load_config
 from dataset.factory import create as create_dataset
@@ -25,13 +25,13 @@ class LearningRate(object):
 
 
 def setup_preloading(batch_spec):
-    placeholders = {name: tf.placeholder(tf.float32, shape=spec) for (name, spec) in batch_spec.items()}
+    placeholders = {name: tf.compat.v1.placeholder(tf.float32, shape=spec) for (name, spec) in batch_spec.items()}
     names = placeholders.keys()
     placeholders_list = list(placeholders.values())
 
     QUEUE_SIZE = 20
 
-    q = tf.FIFOQueue(QUEUE_SIZE, [tf.float32]*len(batch_spec))
+    q = tf.queue.FIFOQueue(QUEUE_SIZE, [tf.float32]*len(batch_spec))
     enqueue_op = q.enqueue(placeholders_list)
     batch_list = q.dequeue()
 
@@ -60,12 +60,12 @@ def start_preloading(sess, enqueue_op, dataset, placeholders):
 
 
 def get_optimizer(loss_op, cfg):
-    learning_rate = tf.placeholder(tf.float32, shape=[])
+    learning_rate = tf.compat.v1.placeholder(tf.float32, shape=[])
 
     if cfg.optimizer == "sgd":
-        optimizer = tf.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
+        optimizer = tf.compat.v1.train.MomentumOptimizer(learning_rate=learning_rate, momentum=0.9)
     elif cfg.optimizer == "adam":
-        optimizer = tf.train.AdamOptimizer(cfg.adam_lr)
+        optimizer = tf.compat.v1.train.AdamOptimizer(cfg.adam_lr)
     else:
         raise ValueError('unknown optimizer {}'.format(cfg.optimizer))
     train_op = slim.learning.create_train_op(loss_op, optimizer)
@@ -86,23 +86,23 @@ def train():
     total_loss = losses['total_loss']
 
     for k, t in losses.items():
-        tf.summary.scalar(k, t)
-    merged_summaries = tf.summary.merge_all()
+        tf.compat.v1.summary.scalar(k, t)
+    merged_summaries = tf.compat.v1.summary.merge_all()
 
     variables_to_restore = slim.get_variables_to_restore(include=["resnet_v1"])
-    restorer = tf.train.Saver(variables_to_restore)
-    saver = tf.train.Saver(max_to_keep=5)
+    restorer = tf.compat.v1.train.Saver(variables_to_restore)
+    saver = tf.compat.v1.train.Saver(max_to_keep=5)
 
-    sess = tf.Session()
+    sess = tf.compat.v1.Session()
 
     coord, thread = start_preloading(sess, enqueue_op, dataset, placeholders)
 
-    train_writer = tf.summary.FileWriter(cfg.log_dir, sess.graph)
+    train_writer = tf.compat.v1.summary.FileWriter(cfg.log_dir, sess.graph)
 
     learning_rate, train_op = get_optimizer(total_loss, cfg)
 
-    sess.run(tf.global_variables_initializer())
-    sess.run(tf.local_variables_initializer())
+    sess.run(tf.compat.v1.global_variables_initializer())
+    sess.run(tf.compat.v1.local_variables_initializer())
 
     # Restore variables from disk.
     restorer.restore(sess, cfg.init_weights)

@@ -1,8 +1,8 @@
 import re
 
 import tensorflow as tf
-import tensorflow.contrib.slim as slim
-from tensorflow.contrib.slim.nets import resnet_v1
+import tf_slim as slim
+from tf_slim.nets import resnet_v1
 
 from dataset.pose_dataset import Batch
 from nnet import losses
@@ -15,8 +15,8 @@ net_funcs = {'resnet_50': resnet_v1.resnet_v1_50,
 def prediction_layer(cfg, input, name, num_outputs):
     with slim.arg_scope([slim.conv2d, slim.conv2d_transpose], padding='SAME',
                         activation_fn=None, normalizer_fn=None,
-                        weights_regularizer=slim.l2_regularizer(cfg.weight_decay)):
-        with tf.variable_scope(name):
+                        weights_regularizer=tf.keras.regularizers.l2(0.5 * (cfg.weight_decay))):
+        with tf.compat.v1.variable_scope(name):
             pred = slim.conv2d_transpose(input, num_outputs,
                                          kernel_size=[3, 3], stride=2,
                                          scope='block4')
@@ -63,7 +63,7 @@ class PoseNet:
         layer_name = 'resnet_v1_{}'.format(num_layers) + '/block{}/unit_{}/bottleneck_v1'
 
         out = {}
-        with tf.variable_scope(scope, reuse=reuse):
+        with tf.compat.v1.variable_scope(scope, reuse=reuse):
             out['part_pred'] = prediction_layer(cfg, features, 'part_pred',
                                                 cfg.num_joints)
             if cfg.location_refinement:
@@ -105,7 +105,7 @@ class PoseNet:
         part_score_weights = batch[Batch.part_score_weights] if weigh_part_predictions else 1.0
 
         def add_part_loss(pred_layer):
-            return tf.losses.sigmoid_cross_entropy(batch[Batch.part_score_targets],
+            return tf.compat.v1.losses.sigmoid_cross_entropy(batch[Batch.part_score_targets],
                                                    heads[pred_layer],
                                                    part_score_weights)
 
@@ -121,7 +121,7 @@ class PoseNet:
             locref_targets = batch[Batch.locref_targets]
             locref_weights = batch[Batch.locref_mask]
 
-            loss_func = losses.huber_loss if cfg.locref_huber_loss else tf.losses.mean_squared_error
+            loss_func = losses.huber_loss if cfg.locref_huber_loss else tf.compat.v1.losses.mean_squared_error
             loss['locref_loss'] = cfg.locref_loss_weight * loss_func(locref_targets, locref_pred, locref_weights)
             total_loss = total_loss + loss['locref_loss']
 
@@ -130,7 +130,7 @@ class PoseNet:
             pairwise_targets = batch[Batch.pairwise_targets]
             pairwise_weights = batch[Batch.pairwise_mask]
 
-            loss_func = losses.huber_loss if cfg.pairwise_huber_loss else tf.losses.mean_squared_error
+            loss_func = losses.huber_loss if cfg.pairwise_huber_loss else tf.compat.v1.losses.mean_squared_error
             loss['pairwise_loss'] = cfg.pairwise_loss_weight * loss_func(pairwise_targets, pairwise_pred,
                                                                          pairwise_weights)
             total_loss = total_loss + loss['pairwise_loss']
