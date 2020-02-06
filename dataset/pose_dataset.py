@@ -231,8 +231,9 @@ class PoseDataset:
         im_width = image_size[2]
         im_height = image_size[1]
 
-        max_input_size = 100
-        if im_height < max_input_size or im_width < max_input_size:
+        min_input_size = 100
+        if im_height < min_input_size or im_width < min_input_size:
+            print('Smaller than min input size')
             return False
 
         if hasattr(self.cfg, 'max_input_size'):
@@ -240,6 +241,7 @@ class PoseDataset:
             input_width = im_width * scale
             input_height = im_height * scale
             if input_height * input_width > max_input_size * max_input_size:
+                print('Larger than max input size')
                 return False
 
         return True
