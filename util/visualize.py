@@ -1,8 +1,10 @@
+import gc
 import math
 
-import numpy as np
 import cv2
 import matplotlib
+import numpy as np
+
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -36,6 +38,7 @@ def visualize_joints(image, pose):
     colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [0, 245, 255], [255, 131, 250], [255, 255, 0],
               [255, 0, 0], [0, 255, 0], [0, 0, 255], [0, 245, 255], [255, 131, 250], [255, 255, 0],
               [0, 0, 0], [255, 255, 255], [255, 0, 0], [0, 255, 0], [0, 0, 255]]
+    colors_count = len(colors)
     for p_idx in range(num_joints):
         cur_x = pose[p_idx, 0]
         cur_y = pose[p_idx, 1]
@@ -43,7 +46,7 @@ def visualize_joints(image, pose):
             _npcircle(visim,
                       cur_x, cur_y,
                       marker_size,
-                      colors[p_idx],
+                      colors[p_idx % colors_count],
                       0.0)
     return visim
 
@@ -101,4 +104,11 @@ def show_arrows(cfg, img, pose, arrows):
     plt.show()
 
 def waitforbuttonpress():
-    plt.waitforbuttonpress(timeout=1)
+    plt.waitforbuttonpress(timeout=0.1)
+    # Clear the current axes.
+    plt.cla()
+    # Clear the current figure.
+    plt.clf()
+    # Closes all the figure windows.
+    plt.close('all')
+    gc.collect()
